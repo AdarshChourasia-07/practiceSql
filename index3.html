@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SQL Practice Arena For Riya</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+
+    <style>
+      body {
+        overflow-x: hidden;
+        transition: all 0.4s ease;
+      }
+
+      .dark-mode {
+        background: #111827;
+        color: white;
+      }
+
+      .floating {
+        position: fixed;
+        top: -20px;
+        animation: floatDown linear infinite;
+        opacity: 0.7;
+        z-index: 1;
+      }
+
+      @keyframes floatDown {
+        0% {
+          transform: translateY(-20px) rotate(0deg);
+        }
+        100% {
+          transform: translateY(120vh) rotate(360deg);
+        }
+      }
+
+      .typing {
+        border-right: 3px solid pink;
+        white-space: nowrap;
+        overflow: hidden;
+        animation: blink 0.7s infinite;
+      }
+
+      @keyframes blink {
+        50% {
+          border-color: transparent;
+        }
+      }
+    </style>
+  </head>
+
+  <body
+    class="bg-gradient-to-br from-pink-100 via-white to-pink-200 min-h-screen p-6 text-gray-800"
+  >
+    <audio autoplay loop>
+      <source
+        src="https://www.bensound.com/bensound-music/bensound-love.mp3"
+        type="audio/mp3"
+      />
+    </audio>
+
+    <div id="petals"></div>
+
+    <div class="max-w-7xl mx-auto relative z-10">
+      <div class="flex justify-between items-center mb-8">
+        <div>
+          <h1
+            class="text-5xl font-bold text-pink-600 typing"
+            id="typingText"
+          ></h1>
+          <p class="mt-3 text-lg text-gray-600">
+            A cute SQL playground made specially for Riya 🌸
+          </p>
+        </div>
+
+        <button
+          onclick="toggleTheme()"
+          class="bg-pink-500 hover:bg-pink-600 text-white px-5 py-3 rounded-2xl shadow-lg"
+        >
+          🌙 Toggle Theme
+        </button>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-6">
+        <div
+          class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-6 border border-pink-200"
+        >
+          <h2 class="text-2xl font-bold text-pink-500 mb-4">SQL Editor 💻</h2>
+
+          <textarea
+            id="query"
+            class="w-full h-52 rounded-2xl border border-pink-300 p-4 font-mono text-sm text-black"
+          >
+SELECT * FROM employees;</textarea
+          >
+
+          <div class="flex gap-4 mt-4 flex-wrap">
+            <button
+              onclick="downloadCertificate()"
+              class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-2xl shadow-lg"
+            >
+              Download Certificate 🏆
+            </button>
+            <button
+              onclick="showQuestions()"
+              class="px-6 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-2xl shadow-lg"
+            >
+              20 SQL Interview Questions 📘
+            </button>
+
+            <button
+              onclick="executeQuery()"
+              class="px-6 py-3 bg-pink-500 hover:bg-pink-600 text-white rounded-2xl shadow-lg"
+            >
+              Run Query 🚀
+            </button>
+
+            <button
+              onclick="startInterviewMode()"
+              class="px-6 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-2xl shadow-lg"
+            >
+              Start Interview Mode ⏱️
+            </button>
+          </div>
+
+          <div class="mt-6 bg-pink-50 rounded-2xl p-4 border border-pink-200">
+            <h3 class="font-bold mb-3">Try These Queries 🏆</h3>
+
+            <ul class="space-y-2 text-sm">
+              <li>SELECT * FROM employees;</li>
+              <li>SELECT * FROM sales;</li>
+              <li>SELECT name FROM employees WHERE salary > 70000;</li>
+              <li>SELECT COUNT(*) FROM employees;</li>
+            </ul>
+          </div>
+        </div>
+
+        <div
+          class="bg-white/90 backdrop-blur rounded-3xl shadow-2xl p-6 border border-pink-200"
+        >
+          <h2 class="text-2xl font-bold text-pink-500 mb-4">Query Result 📊</h2>
+
+          <div
+            id="message"
+            class="mb-4 bg-pink-50 p-4 rounded-2xl border border-pink-200 text-gray-700"
+          >
+            Run a SQL query to explore the database ✨
+          </div>
+
+          <div
+            id="timerBox"
+            class="hidden mb-4 bg-purple-100 text-purple-700 p-3 rounded-2xl font-bold"
+          >
+            Time Left: <span id="timer">60</span>s
+          </div>
+
+          <div class="overflow-auto rounded-2xl border border-gray-200">
+            <table class="w-full border-collapse text-left">
+              <thead id="tableHead"></thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-6 mt-10">
+        <div
+          class="bg-white/90 rounded-3xl shadow-xl p-6 border border-pink-200"
+        >
+          <h2 class="text-2xl font-bold text-pink-500 mb-4">
+            Daily SQL Question 🌸
+          </h2>
+
+          <p class="text-gray-700">
+            Write a query to fetch employee names whose salary is greater than
+            70000.
+          </p>
+        </div>
+
+        <div
+          class="bg-white/90 rounded-3xl shadow-xl p-6 border border-pink-200"
+        >
+          <h2 class="text-2xl font-bold text-pink-500 mb-4">Achievements 🎖️</h2>
+
+          <div class="space-y-3">
+            <div class="bg-pink-100 p-3 rounded-xl">
+              🏆 First Query Executed
+            </div>
+            <div class="bg-pink-100 p-3 rounded-xl">🔥 SQL Explorer Badge</div>
+            <div class="bg-pink-100 p-3 rounded-xl">
+              💖 Bestie Approved Coder
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="bg-white/90 rounded-3xl shadow-xl p-6 border border-pink-200"
+        >
+          <h2 class="text-2xl font-bold text-pink-500 mb-4">
+            Streak Tracker 📈
+          </h2>
+
+          <div class="text-5xl font-bold text-pink-500 mb-2">7 🔥</div>
+
+          <p class="text-gray-700">Days of continuous SQL practice.</p>
+        </div>
+      </div>
+
+      <div
+        id="questionsBox"
+        class="hidden mt-10 bg-white/90 rounded-3xl shadow-2xl p-8 border border-pink-200"
+      >
+        <h2 class="text-3xl font-bold text-pink-500 mb-6 text-center">
+          Top 20 SQL Questions For Data Analyst Interviews 📘
+        </h2>
+
+        <div class="grid md:grid-cols-2 gap-4 text-gray-700">
+          <div class="bg-pink-50 p-4 rounded-2xl">
+            1. Fetch all employee records.
+          </div>
+          <div class="bg-pink-50 p-4 rounded-2xl">
+            2. Find employees with salary greater than 70000.
+          </div>
+          <div class="bg-pink-50 p-4 rounded-2xl">
+            3. Count total employees.
+          </div>
+          <div class="bg-pink-50 p-4 rounded-2xl">
+            4. Find highest salary employee.
+          </div>
+          <div class="bg-pink-50 p-4 rounded-2xl">
+            5. Find second highest salary.
+          </div>
+          <div class="bg-pink-50 p-4 rounded-2xl">
+            6. Use GROUP BY on departments.
+          </div>
+          <div class="bg-pink-50 p-4 rounded-2xl">
+            7. Calculate average salary.
+          </div>
+          <div class="bg-pink-50 p-4 rounded-2xl">
+            8. Use INNER JOIN between tables.
+          </div>
+          <div class="bg-pink-50 p-4 rounded-2xl">
+            9. Find duplicate records.
+          </div>
+          <div class="bg-pink-50 p-4 rounded-2xl">
+            10. Delete duplicate records.
+          </div>
+          <div class="bg-pink-50 p-4 rounded-2xl">11. Use CASE statement.</div>
+          <div class="bg-pink-50 p-4 rounded-2xl">
+            12. Find employees whose name starts with A.
+          </div>
+          <div class="bg-pink-50 p-4 rounded-2xl">13. Use HAVING clause.</div>
+          <div class="bg-pink-50 p-4 rounded-2xl">
+            14. Difference between WHERE and HAVING.
+          </div>
+          <div class="bg-pink-50 p-4 rounded-2xl">
+            15. Rank employees using window functions.
+          </div>
+          <div class="bg-pink-50 p-4 rounded-2xl">16. Use ROW_NUMBER().</div>
+          <div class="bg-pink-50 p-4 rounded-2xl">
+            17. Find monthly sales trend.
+          </div>
+          <div class="bg-pink-50 p-4 rounded-2xl">18. Create a new table.</div>
+          <div class="bg-pink-50 p-4 rounded-2xl">
+            19. Insert records dynamically.
+          </div>
+          <div class="bg-pink-50 p-4 rounded-2xl">
+            20. Update salary using UPDATE query.
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="mt-10 bg-white/90 rounded-3xl shadow-2xl p-8 border border-pink-200 text-center"
+      >
+        <h2 class="text-4xl font-bold text-pink-500 mb-4">A Special Note 💖</h2>
+
+        <p class="text-lg leading-relaxed text-gray-700 max-w-4xl mx-auto">
+          Some projects are built for marks. Some are built for resumes. But
+          this one was built with effort, care, late-night coding, and hope 🌸
+        </p>
+      </div>
+    </div>
+
+    <script>
+      const typingText = "SQL Practice Arena 💻";
+      let i = 0;
+
+      function typeEffect() {
+        if (i < typingText.length) {
+          document.getElementById("typingText").innerHTML +=
+            typingText.charAt(i);
+          i++;
+          setTimeout(typeEffect, 100);
+        }
+      }
+
+      typeEffect();
+
+      function toggleTheme() {
+        document.body.classList.toggle("dark-mode");
+      }
+
+      for (let i = 0; i < 25; i++) {
+        const petal = document.createElement("div");
+        petal.innerHTML = "🌸";
+        petal.classList.add("floating");
+        petal.style.left = Math.random() * 100 + "vw";
+        petal.style.animationDuration = 5 + Math.random() * 5 + "s";
+        petal.style.fontSize = 15 + Math.random() * 20 + "px";
+        document.getElementById("petals").appendChild(petal);
+      }
+
+      let sampleTables = {
+        employees: [
+          { id: 1, name: "Riya", department: "Data Analyst", salary: 2000000 },
+          { id: 2, name: "Adarsh", department: "Developer", salary: 85000 },
+          { id: 3, name: "Ananya", department: "Finance", salary: 65000 },
+          { id: 4, name: "Kabir", department: "Marketing", salary: 55000 },
+        ],
+
+        sales: [
+          { order_id: 101, customer: "Riya", amount: 1200 },
+          { order_id: 102, customer: "Aman", amount: 4500 },
+          { order_id: 103, customer: "Sneha", amount: 2100 },
+        ],
+      };
+
+      function renderTable(data) {
+        const tableHead = document.getElementById("tableHead");
+        const tableBody = document.getElementById("tableBody");
+
+        tableHead.innerHTML = "";
+        tableBody.innerHTML = "";
+
+        if (data.length === 0) {
+          tableBody.innerHTML = `
+          <tr>
+            <td class="p-6 text-center text-pink-500 text-lg">
+              Hmm… query bhi galat aur bestie se panga bhi 😶
+            </td>
+          </tr>
+        `;
+          return;
+        }
+
+        const headers = Object.keys(data[0]);
+
+        let headRow = '<tr class="bg-pink-100">';
+
+        headers.forEach((header) => {
+          headRow += `<th class="p-3 border-b uppercase text-sm">${header}</th>`;
+        });
+
+        headRow += "</tr>";
+        tableHead.innerHTML = headRow;
+
+        data.forEach((row) => {
+          let bodyRow = '<tr class="hover:bg-pink-50">';
+
+          Object.values(row).forEach((value) => {
+            bodyRow += `<td class="p-3 border-b">${value}</td>`;
+          });
+
+          bodyRow += "</tr>";
+
+          tableBody.innerHTML += bodyRow;
+        });
+      }
+
+      function saveProgress() {
+        localStorage.setItem("sqlTables", JSON.stringify(sampleTables));
+      }
+
+      function loadProgress() {
+        const saved = localStorage.getItem("sqlTables");
+        if (saved) {
+          sampleTables = JSON.parse(saved);
+        }
+      }
+
+      function downloadCertificate() {
+        const content = `SQL PRACTICE CERTIFICATE
+
+Awarded to Riya 🌸
+For practicing SQL queries and challenges in SQL Practice Arena 💻
+
+Built with 💖 by Adarsh`;
+
+        const blob = new Blob([content], { type: "text/plain" });
+
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "Riya_SQL_Certificate.txt";
+        link.click();
+      }
+
+      function executeQuery() {
+        const query = document
+          .getElementById("query")
+          .value.toLowerCase()
+          .trim();
+        const message = document.getElementById("message");
+
+        if (query.includes("select * from employees")) {
+          loadProgress();
+          renderTable(sampleTables.employees);
+          message.innerHTML = "Showing all employees ✅";
+        } else if (query.includes("select * from sales")) {
+          renderTable(sampleTables.sales);
+          message.innerHTML = "Showing all sales data 📊";
+        } else if (query.includes("salary > 70000")) {
+          const filtered = sampleTables.employees.filter(
+            (emp) => emp.salary > 70000
+          );
+          renderTable(filtered);
+          message.innerHTML = "Filtered high salary employees 💰";
+        } else if (query.includes("count(*)")) {
+          renderTable([{ total_employees: sampleTables.employees.length }]);
+          message.innerHTML = "Count query executed 🎯";
+        } else if (query.startsWith("insert into employees")) {
+          try {
+            const valuesPart = query.match(/values\s*\((.*)\)/i)[1];
+            const values = valuesPart
+              .split(",")
+              .map((v) => v.trim().replace(/'/g, ""));
+
+            const newEmployee = {
+              id: Number(values[0]),
+              name: values[1],
+              department: values[2],
+              salary: Number(values[3]),
+            };
+
+            sampleTables.employees.push(newEmployee);
+            saveProgress();
+
+            renderTable(sampleTables.employees);
+            message.innerHTML = "Employee inserted successfully 🎉";
+          } catch (e) {
+            renderTable([]);
+            message.innerHTML = "Insert query format incorrect 😭";
+          }
+        } else if (query.startsWith("delete from employees")) {
+          sampleTables.employees.pop();
+          saveProgress();
+
+          renderTable(sampleTables.employees);
+          message.innerHTML = "Last employee deleted 🗑️";
+        } else if (query.startsWith("update employees")) {
+          sampleTables.employees[0].salary += 5000;
+          saveProgress();
+
+          renderTable(sampleTables.employees);
+          message.innerHTML = "Employee salary updated ✨";
+        } else if (query.startsWith("create table")) {
+          renderTable([{ status: "Table Created Successfully" }]);
+          message.innerHTML = "New table created successfully 🧠";
+        } else {
+          renderTable([]);
+          message.innerHTML = "Hmm… query bhi galat aur bestie se panga bhi 😶";
+        }
+      }
+
+      function showQuestions() {
+        document.getElementById("questionsBox").classList.toggle("hidden");
+      }
+
+      function startInterviewMode() {
+        let timeLeft = 60;
+
+        document.getElementById("timerBox").classList.remove("hidden");
+
+        const timer = setInterval(() => {
+          document.getElementById("timer").innerText = timeLeft;
+
+          timeLeft--;
+
+          if (timeLeft < 0) {
+            clearInterval(timer);
+
+            document.getElementById("message").innerHTML =
+              "Interview Mode Finished ⏱️";
+          }
+        }, 1000);
+      }
+
+      renderTable(sampleTables.employees);
+    </script>
+  </body>
+</html>
